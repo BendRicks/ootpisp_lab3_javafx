@@ -1,0 +1,20 @@
+Rifle{
+name=RSAS R11
+caliber=7.62x51 R
+isBoltAction=false
+}
+Shotgun{
+name=Remington
+caliber=12/70
+isPomp=true
+}
+Saber{
+name=Katana
+bladeLength=800 mm
+isDoubleSided=false
+}
+Spear{
+name=Pillum
+bladeLength=50 mm
+isThrowable=true
+}

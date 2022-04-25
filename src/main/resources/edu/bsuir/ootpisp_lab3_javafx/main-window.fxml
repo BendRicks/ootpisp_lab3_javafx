@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="350.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="edu.bsuir.ootpisp_lab3_javafx.HelloController">
+   <children>
+      <ListView fx:id="objectsListViewer" layoutX="274.0" layoutY="14.0" prefHeight="290.0" prefWidth="312.0" />
+      <Button layoutX="274.0" layoutY="314.0" mnemonicParsing="false" onAction="#editButtonPressed" prefHeight="25.0" prefWidth="100.0" text="Edit" />
+      <Button layoutX="486.0" layoutY="314.0" mnemonicParsing="false" onAction="#clearButtonPressed" prefHeight="25.0" prefWidth="100.0" text="Clear" />
+      <TextField fx:id="nameTextField" layoutX="14.0" layoutY="73.0" prefHeight="45.0" prefWidth="245.0" />
+      <TextField fx:id="additParamTextField" layoutX="14.0" layoutY="137.0" prefHeight="45.0" prefWidth="245.0" />
+      <Button layoutX="88.0" layoutY="243.0" mnemonicParsing="false" onAction="#addButtonPressed" prefHeight="25.0" prefWidth="100.0" text="Add to list" />
+      <Button layoutX="87.0" layoutY="279.0" mnemonicParsing="false" onAction="#serializeButtonPressed" prefHeight="25.0" prefWidth="100.0" text="Serialize" />
+      <Button layoutX="87.0" layoutY="314.0" mnemonicParsing="false" onAction="#deserializeButtonPressed" prefHeight="25.0" prefWidth="100.0" text="Deserialize" />
+      <Button layoutX="380.0" layoutY="314.0" mnemonicParsing="false" onAction="#deleteButtonPressed" prefHeight="25.0" prefWidth="100.0" text="Delete" />
+      <ComboBox fx:id="classesComboBox" layoutX="15.0" layoutY="29.0" onHidden="#comboBoxOnHidden" prefHeight="25.0" prefWidth="245.0" />
+      <Pane layoutX="15.0" layoutY="198.0" prefHeight="35.0" prefWidth="245.0" style="-fx-background-color: lightgray; -fx-background-radius: 10;">
+         <children>
+            <RadioButton fx:id="trueRB" layoutX="14.0" layoutY="9.0" mnemonicParsing="false" selected="true" text="True">
+               <toggleGroup>
+                  <ToggleGroup fx:id="booleanGroup" />
+               </toggleGroup>
+            </RadioButton>
+            <RadioButton fx:id="falseRB" layoutX="143.0" layoutY="9.0" mnemonicParsing="false" text="False" toggleGroup="$booleanGroup" />
+         </children>
+      </Pane>
+      <Label layoutX="15.0" layoutY="5.0" text="Choose class:" />
+      <Label layoutX="14.0" layoutY="54.0" text="Name" />
+      <Label fx:id="apLabel" layoutX="14.0" layoutY="118.0" text="Rifle caliber" />
+      <Label fx:id="bpLabel" layoutX="16.0" layoutY="182.0" text="Is rifle bolt action?" />
+   </children>
+</Pane>

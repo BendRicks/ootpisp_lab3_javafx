@@ -1,6 +1,8 @@
 package edu.bsuir.ootpisp_lab3_javafx.entity;
 
-public class Shotgun extends Firearms{
+import java.io.Serializable;
+
+public class Shotgun extends Firearms implements Serializable {
 
     private boolean isPomp;
 

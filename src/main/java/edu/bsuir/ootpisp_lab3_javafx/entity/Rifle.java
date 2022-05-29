@@ -1,8 +1,11 @@
 package edu.bsuir.ootpisp_lab3_javafx.entity;
 
-public class Rifle extends Firearms{
+import java.io.Serializable;
+
+public class Rifle extends Firearms implements Serializable {
 
     private boolean isBoltAction;
+    private RifleOptions options;
 
     public Rifle() {}
 

@@ -1,0 +1,7 @@
+Rifle {
+	name = null
+	caliber = null
+	options = null
+	isBoltAction = "false"
+}
+

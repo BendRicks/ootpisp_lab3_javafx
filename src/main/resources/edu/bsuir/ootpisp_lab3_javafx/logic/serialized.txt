@@ -1,20 +1,41 @@
-Rifle{
-name=RSAS R11
-caliber=7.62x51 R
-isBoltAction=false
+Rifle {
+	name = "sfasdf"
+	caliber = "null"
+	options = RifleOptions {
+		H = "0"
+		G = "0"
+		F = "0"
+		E = "0"
+		D = "0"
+		C = "0.0"
+		B = "0.0"
+		A = "0"
+		g = "0"
+		f = "0"
+		e = "0"
+		d = "0"
+		c = "0.0"
+		b = "0.0"
+		a = "0"
+	}
+	isBoltAction = "false"
 }
-Shotgun{
-name=Remington
-caliber=12/70
-isPomp=true
+
+Shotgun {
+	name = "nullsfasf"
+	caliber = "null"
+	isPomp = "false"
 }
-Saber{
-name=Katana
-bladeLength=800 mm
-isDoubleSided=false
+
+Saber {
+	name = "null"
+	bladeLength = "null"
+	isDoubleSided = "false"
 }
-Spear{
-name=Pillum
-bladeLength=50 mm
-isThrowable=true
+
+Spear {
+	name = "sfasf"
+	bladeLength = "null"
+	isThrowable = "false"
 }
+

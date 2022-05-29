@@ -1,7 +1,6 @@
 package edu.bsuir.ootpisp_lab3_javafx.entity;
 
 public abstract class HandWeapon {
-
     private String name;
 
     public HandWeapon(){}

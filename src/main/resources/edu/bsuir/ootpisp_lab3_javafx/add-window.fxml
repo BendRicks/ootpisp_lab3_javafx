@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="110.0" prefWidth="280.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1">
+    <Pane layoutX="17.0" layoutY="31.0" prefHeight="35.0" prefWidth="245.0" style="-fx-background-color: lightgray; -fx-background-radius: 10;">
+        <children>
+            <RadioButton fx:id="trueRB" layoutX="14.0" layoutY="9.0" mnemonicParsing="false" selected="true" text="True">
+                <toggleGroup>
+                    <ToggleGroup fx:id="booleanGroup" />
+                </toggleGroup>
+            </RadioButton>
+            <RadioButton fx:id="falseRB" layoutX="143.0" layoutY="9.0" mnemonicParsing="false" text="False" toggleGroup="$booleanGroup" />
+         <TextField fx:id="additParamTextField" layoutX="14.0" layoutY="5.0" prefHeight="25.0" prefWidth="215.0" />
+        </children>
+    </Pane>
+   <Label fx:id="apLabel" layoutX="17.0" layoutY="14.0" text="Label" />
+   <Button fx:id="nextBtn" layoutX="80.0" layoutY="71.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="120.0" text="Next" />
+</Pane>

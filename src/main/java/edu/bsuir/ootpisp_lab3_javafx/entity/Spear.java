@@ -1,6 +1,8 @@
 package edu.bsuir.ootpisp_lab3_javafx.entity;
 
-public class Spear extends ColdWeapons{
+import java.io.Serializable;
+
+public class Spear extends ColdWeapons implements Serializable {
 
     private boolean isThrowable;
 

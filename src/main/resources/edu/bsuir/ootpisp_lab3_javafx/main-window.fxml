@@ -3,17 +3,18 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="445.0" prefWidth="340.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="edu.bsuir.ootpisp_lab3_javafx.HelloController">
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="445.0" prefWidth="340.0" xmlns="http://javafx.com/javafx/11.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="edu.bsuir.ootpisp_lab3_javafx.HelloController">
    <children>
       <ListView fx:id="objectsListViewer" layoutX="14.0" layoutY="14.0" prefHeight="290.0" prefWidth="312.0" />
       <Button layoutX="14.0" layoutY="314.0" mnemonicParsing="false" onAction="#editButtonPressed" prefHeight="25.0" prefWidth="100.0" text="Edit" />
       <Button layoutX="224.0" layoutY="314.0" mnemonicParsing="false" onAction="#clearButtonPressed" prefHeight="25.0" prefWidth="100.0" text="Clear" />
-      <Button layoutX="120.0" layoutY="413.0" mnemonicParsing="false" onAction="#addButtonPressed" prefHeight="25.0" prefWidth="100.0" text="Add to list" />
+      <Button layoutX="43.0" layoutY="413.0" mnemonicParsing="false" onAction="#addButtonPressed" prefHeight="25.0" prefWidth="100.0" text="Add to list" />
       <Button layoutX="14.0" layoutY="341.0" mnemonicParsing="false" onAction="#serializeButtonPressed" prefHeight="25.0" prefWidth="100.0" text="Serialize" />
       <Button layoutX="120.0" layoutY="341.0" mnemonicParsing="false" onAction="#deserializeButtonPressed" prefHeight="25.0" prefWidth="100.0" text="Deserialize" />
       <Button layoutX="120.0" layoutY="314.0" mnemonicParsing="false" onAction="#deleteButtonPressed" prefHeight="25.0" prefWidth="100.0" text="Delete" />
       <ComboBox fx:id="classesComboBox" layoutX="8.0" layoutY="383.0" prefHeight="25.0" prefWidth="312.0" />
       <Label layoutX="8.0" layoutY="366.0" text="Choose class:" />
       <Button layoutX="224.0" layoutY="341.0" mnemonicParsing="false" onAction="#viewButtonPressed" prefHeight="25.0" prefWidth="100.0" text="View" />
+      <Button layoutX="174.0" layoutY="413.0" mnemonicParsing="false" onAction="#updateButtonPressed" prefHeight="25.0" prefWidth="100.0" text="Update plugins" />
    </children>
 </Pane>

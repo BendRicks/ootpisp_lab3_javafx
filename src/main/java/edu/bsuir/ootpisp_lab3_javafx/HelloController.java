@@ -2,6 +2,7 @@ package edu.bsuir.ootpisp_lab3_javafx;
 
 import edu.bsuir.ootpisp_lab3_javafx.entity.*;
 import edu.bsuir.ootpisp_lab3_javafx.logic.Deserializer;
+import edu.bsuir.ootpisp_lab3_javafx.logic.ModuleEngine;
 import edu.bsuir.ootpisp_lab3_javafx.logic.Serializer;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -186,6 +187,15 @@ public class HelloController {
             addStage.show();
             currFieldCount = 0;
             updateAddInfo(fields.get(currFieldCount));
+        }
+    }
+
+    @FXML
+    private void updateButtonPressed(){
+        try {
+            ModuleEngine.updateModules(classesComboBox, "C:\\Users\\bendr\\Documents\\serialize_plugins");
+        } catch (IOException e) {
+            makeNotification(Alert.AlertType.ERROR, "Error", "Loading error", "Ocuured an error while loading classes");
         }
     }
 

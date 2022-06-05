@@ -2,7 +2,6 @@ package edu.bsuir.ootpisp_lab3_javafx.logic;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -46,5 +45,40 @@ public class ModuleLoader extends ClassLoader {
         is.close();
         return bytes;
     }
-}
 
+    public boolean isLoaded(String classPath) {
+        File file = new File(classPath);
+        String[] nameParts = file.getName().split("\\.");
+        StringBuilder stringBuilder = new StringBuilder();
+        if (nameParts.length > 2){
+            for (int i = 0; i < nameParts.length - 1; i++){
+                stringBuilder.append(nameParts[i]);
+                if (i < nameParts.length - 2){
+                    stringBuilder.append(".");
+                }
+            }
+        } else {
+            stringBuilder.append(nameParts[0]);
+        }
+        String className = stringBuilder.toString();
+        return findLoadedClass(className) != null;
+    }
+
+    public Class getLoadedClass(String classPath){
+        File file = new File(classPath);
+        String[] nameParts = file.getName().split("\\.");
+        StringBuilder stringBuilder = new StringBuilder();
+        if (nameParts.length > 2){
+            for (int i = 0; i < nameParts.length - 1; i++){
+                stringBuilder.append(nameParts[i]);
+                if (i < nameParts.length - 2){
+                    stringBuilder.append(".");
+                }
+            }
+        } else {
+            stringBuilder.append(nameParts[0]);
+        }
+        String className = stringBuilder.toString();
+        return findLoadedClass(className);
+    }
+}

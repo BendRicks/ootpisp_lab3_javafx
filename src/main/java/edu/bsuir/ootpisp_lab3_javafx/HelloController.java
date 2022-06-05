@@ -55,11 +55,8 @@ public class HelloController {
     public void initialize() {
         objectsList = FXCollections.observableArrayList();
         objectsListViewer.setItems(objectsList);
-        ObservableList<Class> classesList =
-                FXCollections.observableArrayList(Rifle.class, Shotgun.class, Saber.class, Spear.class);
-        classesComboBox.setItems(classesList);
-        classesComboBox.setValue(Rifle.class);
         buffFieldCounters = new Stack<>();
+        updateButtonPressed();
         buffObjects = new Stack<>();
         buffFields = new Stack<>();
         try {
@@ -74,7 +71,6 @@ public class HelloController {
             falseRB = (RadioButton) addStagefxmlLoader.getNamespace().get("falseRB");
             apLabel = (Label) addStagefxmlLoader.getNamespace().get("apLabel");
             nextBtn = (Button) addStagefxmlLoader.getNamespace().get("nextBtn");
-
             nextBtn.setOnAction(actionEvent -> {
                 boolean isEnded = false;
                 try {
@@ -122,9 +118,6 @@ public class HelloController {
                             if (currField.get(currObject) == null) {
                                 Object newObj = currField.getType().getConstructor().newInstance();
                                 currField.set(currObject, newObj);
-                                if (!serializableClasses.contains(currField.getType()) && !(currField.get(currObject) instanceof Serializable)){
-                                    throw new Exception("There's not serializable class");
-                                }
                                 buffFields.push(fields);
                                 buffObjects.push(currObject);
                                 buffFieldCounters.push(currFieldCount);
@@ -193,9 +186,27 @@ public class HelloController {
     @FXML
     private void updateButtonPressed(){
         try {
-            ModuleEngine.updateModules(classesComboBox, "C:\\Users\\bendr\\Documents\\serialize_plugins");
+            ModuleEngine.updateModules(classesComboBox);
+        } catch (InvocationTargetException e) {
+            makeNotification(Alert.AlertType.ERROR, "Error",
+                    "Invoaction target exception",
+                    "Error has occured while trying to handle classes");
+        } catch (IllegalAccessException e) {
+            makeNotification(Alert.AlertType.ERROR, "Error",
+                    "Illegal access exception",
+                    "Error has occured while trying to check if class was already loaded");
+        } catch (NoSuchMethodException e) {
+            makeNotification(Alert.AlertType.ERROR, "Error",
+                    "No such method exception",
+                    "Error has occured while trying to check if class was already loaded");
         } catch (IOException e) {
-            makeNotification(Alert.AlertType.ERROR, "Error", "Loading error", "Ocuured an error while loading classes");
+            makeNotification(Alert.AlertType.ERROR, "Error",
+                    "Input/Output exception",
+                    "Error has occured while trying to load file: " + e.getMessage());
+        } catch (ClassNotFoundException e) {
+            makeNotification(Alert.AlertType.ERROR, "Error",
+                    "Class not found exception",
+                    "Error has occured while trying to load class: " + e.getMessage());
         }
     }
 
@@ -263,7 +274,9 @@ public class HelloController {
                 updateAddInfo(fields.get(currFieldCount));
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
                      NoSuchMethodException e) {
-                e.printStackTrace();
+                makeNotification(Alert.AlertType.ERROR, "Error",
+                        "Add window error",
+                        "Error has occured: " + e.getMessage());
             }
         }
     }
@@ -278,7 +291,9 @@ public class HelloController {
                 Serializer.serializeObjects(fileToSave, objectsList);
             }
         } catch (IOException | IllegalAccessException e) {
-            e.printStackTrace();
+            makeNotification(Alert.AlertType.ERROR, "Error",
+                    "Serialize error",
+                    "Error has occured: " + e.getMessage());
         }
     }
 
@@ -294,7 +309,9 @@ public class HelloController {
             }
         } catch (IOException | ClassNotFoundException | InvocationTargetException | NoSuchMethodException |
                  InstantiationException | IllegalAccessException | NoSuchFieldException e) {
-            e.printStackTrace();
+            makeNotification(Alert.AlertType.ERROR, "Error",
+                    "Deserialize error",
+                    "Error has occured: " + e.getMessage());
         }
     }
 
@@ -307,7 +324,9 @@ public class HelloController {
                 viewTextArea.setText(Serializer.serializeObject(obj));
                 viewStage.show();
             } catch (IllegalAccessException e) {
-                throw new RuntimeException(e);
+                makeNotification(Alert.AlertType.ERROR, "Error",
+                        "Deserialize error",
+                        "Error has occured: " + e.getMessage());
             }
         }
     }

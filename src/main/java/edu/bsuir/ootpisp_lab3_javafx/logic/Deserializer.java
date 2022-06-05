@@ -73,7 +73,10 @@ public class Deserializer {
             }
             serializedObject.add(objPart);
             if (objPart.equals("}")){
-                list.add(deserializeObject(serializedObject));
+                Object obj = deserializeObject(serializedObject);
+                if (obj != null) {
+                    list.add(obj);
+                }
                 fis.nextLine();
                 serializedObject.clear();
             }
@@ -87,53 +90,77 @@ public class Deserializer {
         Matcher classStringMatcher = fieldNamePattern.matcher(classString);
         classStringMatcher.find();
         classString = classStringMatcher.group();
-        Object newObject = Class.forName(properties.getProperty(classString)).getConstructor().newInstance();
-        Stack<Class> hierarchy = getClassHierarchy(newObject);
-        Class currClass = hierarchy.pop();
-        int currClassFieldsAmount = currClass.getDeclaredFields().length - 1;
-        int currField = 0;
-        for (int i = 1; i < objLength; i++) {
-            String paramStr = objectString.get(i);
-            String[] paramStrParts = paramStr.split(" = ");
-            Matcher fieldNameMatcher = fieldNamePattern.matcher(paramStrParts[0]);
-            fieldNameMatcher.find();
-            String fieldName = fieldNameMatcher.group();
-            StringBuilder stringBuilder = new StringBuilder();
-            if (paramStrParts.length > 2){
-                for (int j = 1; j < paramStrParts.length; j++){
-                    stringBuilder.append(paramStrParts[j]);
-                }
-            } else {
-                stringBuilder.append(paramStrParts[1]);
-            }
-            String fieldValue = stringBuilder.toString();
-            Field fieldToSet = currClass.getDeclaredField(fieldName);
-            fieldToSet.setAccessible(true);
-            if (fieldValue.equals("null")){
-                fieldToSet.set(newObject, null);
-            } else {
-                if (serializableClasses.contains(fieldToSet.getType())){
-                    fieldValue = fieldValue.substring(1, fieldValue.length()-1);
-                    if (fieldToSet.getType() == boolean.class
-                            || fieldToSet.getType() == Boolean.class) {
-                        fieldToSet.set(newObject, classesParsers.get(fieldToSet.getType()).invoke(null, fieldValue));
-                    } else if (fieldToSet.getType() == String.class) {
-                        fieldToSet.set(newObject, fieldValue);
-                    } else if (fieldToSet.getType() == char.class
-                            || fieldToSet.getType() == Character.class) {
-                        fieldToSet.set(newObject, fieldValue.charAt(0));
-                    } else {
-                        fieldToSet.set(newObject, classesParsers.
-                                get(fieldToSet.getType()).invoke(null, fieldValue));
+        String className = properties.getProperty(classString);
+        if (className != null) {
+            Class objClass = ModuleEngine.getLoader().getLoadedClass(className);
+            Object newObject = objClass.getConstructor().newInstance();
+            Stack<Class> hierarchy = getClassHierarchy(newObject);
+            Class currClass = hierarchy.pop();
+            int currClassFieldsAmount = currClass.getDeclaredFields().length - 1;
+            int currField = 0;
+            for (int i = 1; i < objLength; i++) {
+                String paramStr = objectString.get(i);
+                String[] paramStrParts = paramStr.split(" = ");
+                Matcher fieldNameMatcher = fieldNamePattern.matcher(paramStrParts[0]);
+                fieldNameMatcher.find();
+                String fieldName = fieldNameMatcher.group();
+                StringBuilder stringBuilder = new StringBuilder();
+                if (paramStrParts.length > 2) {
+                    for (int j = 1; j < paramStrParts.length; j++) {
+                        stringBuilder.append(paramStrParts[j]);
                     }
                 } else {
-                    if (fieldToSet.getType().isArray()){
-                        Pattern openBracketPattern = Pattern.compile("\\[");
-                        Pattern closeBracketPattern = Pattern.compile("]");
-                        ArrayList<String> subObject = new ArrayList<>();
-                        int unclosedBlocks = 1;
-                        subObject.add(fieldValue);
-                        if (!serializableClasses.contains(fieldToSet.getType().getComponentType()) && !fieldValue.equals("[]")) {
+                    stringBuilder.append(paramStrParts[1]);
+                }
+                String fieldValue = stringBuilder.toString();
+                Field fieldToSet = currClass.getDeclaredField(fieldName);
+                fieldToSet.setAccessible(true);
+                if (fieldValue.equals("null")) {
+                    fieldToSet.set(newObject, null);
+                } else {
+                    if (serializableClasses.contains(fieldToSet.getType())) {
+                        fieldValue = fieldValue.substring(1, fieldValue.length() - 1);
+                        if (fieldToSet.getType() == boolean.class
+                                || fieldToSet.getType() == Boolean.class) {
+                            fieldToSet.set(newObject, classesParsers.get(fieldToSet.getType()).invoke(null, fieldValue));
+                        } else if (fieldToSet.getType() == String.class) {
+                            fieldToSet.set(newObject, fieldValue);
+                        } else if (fieldToSet.getType() == char.class
+                                || fieldToSet.getType() == Character.class) {
+                            fieldToSet.set(newObject, fieldValue.charAt(0));
+                        } else {
+                            fieldToSet.set(newObject, classesParsers.
+                                    get(fieldToSet.getType()).invoke(null, fieldValue));
+                        }
+                    } else {
+                        if (fieldToSet.getType().isArray()) {
+                            Pattern openBracketPattern = Pattern.compile("\\[");
+                            Pattern closeBracketPattern = Pattern.compile("]");
+                            ArrayList<String> subObject = new ArrayList<>();
+                            int unclosedBlocks = 1;
+                            subObject.add(fieldValue);
+                            if (!serializableClasses.contains(fieldToSet.getType().getComponentType()) && !fieldValue.equals("[]")) {
+                                do {
+                                    i++;
+                                    String newStr = objectString.get(i);
+                                    subObject.add(newStr);
+                                    Matcher openBracketMatcher = openBracketPattern.matcher(newStr);
+                                    Matcher closeBracketMatcher = closeBracketPattern.matcher(newStr);
+                                    while (openBracketMatcher.find()) {
+                                        unclosedBlocks++;
+                                    }
+                                    while (closeBracketMatcher.find()) {
+                                        unclosedBlocks--;
+                                    }
+                                } while (unclosedBlocks != 0);
+                            }
+                            fieldToSet.set(newObject, deserializeArray(fieldToSet.getType(), subObject));
+                        } else {
+                            Pattern openBracketPattern = Pattern.compile("[{]");
+                            Pattern closeBracketPattern = Pattern.compile("[}]");
+                            ArrayList<String> subObject = new ArrayList<>();
+                            int unclosedBlocks = 1;
+                            subObject.add(fieldValue);
                             do {
                                 i++;
                                 String newStr = objectString.get(i);
@@ -147,41 +174,22 @@ public class Deserializer {
                                     unclosedBlocks--;
                                 }
                             } while (unclosedBlocks != 0);
+                            fieldToSet.set(newObject, deserializeObject(subObject));
                         }
-                        fieldToSet.set(newObject, deserializeArray(fieldToSet.getType(), subObject));
-                    } else {
-                        Pattern openBracketPattern = Pattern.compile("[{]");
-                        Pattern closeBracketPattern = Pattern.compile("[}]");
-                        ArrayList<String> subObject = new ArrayList<>();
-                        int unclosedBlocks = 1;
-                        subObject.add(fieldValue);
-                        do {
-                            i++;
-                            String newStr = objectString.get(i);
-                            subObject.add(newStr);
-                            Matcher openBracketMatcher = openBracketPattern.matcher(newStr);
-                            Matcher closeBracketMatcher = closeBracketPattern.matcher(newStr);
-                            while (openBracketMatcher.find()) {
-                                unclosedBlocks++;
-                            }
-                            while (closeBracketMatcher.find()) {
-                                unclosedBlocks--;
-                            }
-                        } while (unclosedBlocks != 0);
-                        fieldToSet.set(newObject, deserializeObject(subObject));
                     }
                 }
+                fieldToSet.setAccessible(false);
+                if (currField >= currClassFieldsAmount && !hierarchy.isEmpty()) {
+                    currClass = hierarchy.pop();
+                    currField = 0;
+                    currClassFieldsAmount = currClass.getDeclaredFields().length - 1;
+                } else {
+                    currField++;
+                }
             }
-            fieldToSet.setAccessible(false);
-            if (currField >= currClassFieldsAmount && !hierarchy.isEmpty()){
-                currClass = hierarchy.pop();
-                currField = 0;
-                currClassFieldsAmount = currClass.getDeclaredFields().length - 1;
-            } else {
-                currField++;
-            }
+            return newObject;
         }
-        return newObject;
+        return null;
     }
 
     private static Object deserializeArray(Class arrClass, ArrayList<String> objectString) throws InvocationTargetException, IllegalAccessException, NoSuchFieldException, ClassNotFoundException, NoSuchMethodException, InstantiationException {

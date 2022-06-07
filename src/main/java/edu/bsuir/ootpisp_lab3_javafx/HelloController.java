@@ -1,13 +1,11 @@
 package edu.bsuir.ootpisp_lab3_javafx;
 
-import edu.bsuir.ootpisp_lab3_javafx.entity.*;
 import edu.bsuir.ootpisp_lab3_javafx.logic.Deserializer;
 import edu.bsuir.ootpisp_lab3_javafx.logic.ModuleEngine;
 import edu.bsuir.ootpisp_lab3_javafx.logic.Serializer;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -17,7 +15,7 @@ import javafx.stage.Stage;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.Serializable;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -34,6 +32,8 @@ public class HelloController {
     private ListView<Object> objectsListViewer;
     @FXML
     private ComboBox<Class> classesComboBox;
+    @FXML
+    private TextField arraySizeTextField;
     private TextField additParamTextField;
     private RadioButton trueRB;
     private RadioButton falseRB;
@@ -47,9 +47,13 @@ public class HelloController {
     private final String CHAR_REGEXP = "[^#?&$]?";
     private final String STRING_REGEXP = "[^#?&$]*";
     private Pattern regexPattern = Pattern.compile(INT_REGEXP);
+    private Pattern indexPattern = Pattern.compile(INT_REGEXP);
     private Stage addStage;
     private Stage viewStage;
     private Button nextBtn;
+    private int arraySize;
+    private boolean isPrimArray = false;
+    private String arrayLine;
 
     @FXML
     public void initialize() {
@@ -75,21 +79,48 @@ public class HelloController {
                 boolean isEnded = false;
                 try {
                     fields.get(currFieldCount).setAccessible(true);
-                    if (fields.get(currFieldCount).getType() == boolean.class
-                            || fields.get(currFieldCount).getType() == Boolean.class) {
-                        fields.get(currFieldCount).set(currObject, trueRB.isSelected());
-                    } else if (fields.get(currFieldCount).getType() == String.class) {
-                        fields.get(currFieldCount)
-                                .set(currObject, additParamTextField.getText());
-                    } else if (fields.get(currFieldCount).getType() == char.class
-                            || fields.get(currFieldCount).getType() == Character.class) {
-                        fields.get(currFieldCount)
-                                .set(currObject, additParamTextField.getText().charAt(0));
+                    if (!isPrimArray) {
+                        if (fields.get(currFieldCount).getType() == boolean.class
+                                || fields.get(currFieldCount).getType() == Boolean.class) {
+                            fields.get(currFieldCount).set(currObject, trueRB.isSelected());
+                        } else if (fields.get(currFieldCount).getType() == String.class) {
+                            fields.get(currFieldCount)
+                                    .set(currObject, additParamTextField.getText());
+                        } else if (fields.get(currFieldCount).getType() == char.class
+                                || fields.get(currFieldCount).getType() == Character.class) {
+                            fields.get(currFieldCount)
+                                    .set(currObject, additParamTextField.getText().charAt(0));
+                        } else {
+                            fields.get(currFieldCount)
+                                    .set(currObject,
+                                            classesParsers.get(fields.get(currFieldCount).getType())
+                                                    .invoke(null, additParamTextField.getText()));
+                        }
                     } else {
-                        fields.get(currFieldCount)
-                                .set(currObject,
-                                        classesParsers.get(fields.get(currFieldCount).getType())
-                                                .invoke(null, additParamTextField.getText()));
+                        arrayLine = additParamTextField.getText();
+                        String[] arrParts = arrayLine.split("(\\s)|(,\\s)|(,)");
+                        Class elemType = fields.get(currFieldCount).getType().getComponentType();
+                        for (int i = 0; i < arraySize; i++) {
+                            if (i >= arrParts.length) {
+                                break;
+                            }
+                            if (elemType == boolean.class
+                                    || elemType == Boolean.class) {
+                                Array.set(fields.get(currFieldCount).get(currObject),
+                                        i, trueRB.isSelected());
+                            } else if (elemType == String.class) {
+                                Array.set(fields.get(currFieldCount).get(currObject),
+                                        i, arrParts[i]);
+                            } else if (elemType == char.class
+                                    || elemType == Character.class) {
+                                Array.set(fields.get(currFieldCount).get(currObject),
+                                        i, additParamTextField.getText().charAt(0));
+                            } else {
+                                Array.set(fields.get(currFieldCount).get(currObject),
+                                        i, classesParsers.get(elemType).invoke(null, arrParts[i]));
+                            }
+                        }
+                        isPrimArray = false;
                     }
                     fields.get(currFieldCount).setAccessible(false);
                 } catch (IllegalAccessException e) {
@@ -112,27 +143,68 @@ public class HelloController {
                         }
                     }
                     if (!isEnded) {
-                        while (!serializableClasses.contains(fields.get(currFieldCount).getType())) {
-                            Field currField = fields.get(currFieldCount);
+                        Field currField = fields.get(currFieldCount);
+                        while (!serializableClasses.contains(currField.getType())) {
                             currField.setAccessible(true);
-                            if (currField.get(currObject) == null) {
-                                Object newObj = currField.getType().getConstructor().newInstance();
-                                currField.set(currObject, newObj);
+                            if (!currField.getType().isArray()) {
+                                Object newObj = currField.get(currObject);
+                                if (newObj == null) {
+                                    newObj = currField.getType().getConstructor().newInstance();
+                                    currField.set(currObject, newObj);
+                                }
                                 buffFields.push(fields);
                                 buffObjects.push(currObject);
                                 buffFieldCounters.push(currFieldCount);
                                 currObject = newObj;
                             } else {
-                                buffFields.push(fields);
-                                buffObjects.push(currObject);
-                                buffFieldCounters.push(currFieldCount);
-                                currObject = currField.get(currObject);
+                                Class elemType = currField.getType().getComponentType();
+                                Object newArr = currField.get(currObject);
+                                if (newArr == null) {
+                                    newArr = Array.newInstance(elemType, arraySize);
+                                    currField.set(currObject, newArr);
+                                }
+                                if (!serializableClasses.contains(elemType)) {
+                                    buffFields.push(fields);
+                                    buffObjects.push(currObject);
+                                    buffFieldCounters.push(currFieldCount);
+                                    for (int i = Array.getLength(newArr) - 1; i > 0; i--) {
+                                        if (Array.get(newArr, i) == null) {
+                                            Array.set(newArr, i, elemType.getConstructor().newInstance());
+                                        }
+                                        buffFields.push(
+                                                getAllFields(
+                                                        Array.get(
+                                                                newArr, i)));
+                                        buffObjects.push(Array.get(newArr, i));
+                                        buffFieldCounters.push(0);
+                                    }
+                                    if (Array.get(newArr, 0) == null) {
+                                        Array.set(newArr, 0, elemType.getConstructor().newInstance());
+                                    }
+                                    currObject = Array.get(newArr, 0);
+                                } else {
+                                    currField = getClass().getDeclaredField("arrayLine");
+                                    isPrimArray = true;
+                                }
                             }
                             currField.setAccessible(false);
-                            currFieldCount = 0;
-                            fields = getAllFields(currObject);
+                            if (!isPrimArray) {
+                                currFieldCount = 0;
+                                fields = getAllFields(currObject);
+                                currField = fields.get(currFieldCount);
+                            }
                         }
-                        updateAddInfo(fields.get(currFieldCount));
+                        Field oldField = fields.get(currFieldCount);
+                        StringBuilder objPath = new StringBuilder();
+                        for (Object obj : buffObjects) {
+                            objPath.append(obj.getClass().getSimpleName()).append(":");
+                        }
+                        objPath.append(currObject.getClass().getSimpleName()).append(":");
+                        updateAddInfo(currField, isPrimArray ? this : currObject,
+                                isPrimArray ? objPath + " array of "
+                                        + oldField.getType().getComponentType().getSimpleName() + " " + oldField.getName():
+                                        objPath + " " + oldField.getType().getSimpleName()
+                                                + " " + oldField.getName());
                     }
                 } catch (Exception e) {
                     throw new RuntimeException(e);
@@ -149,7 +221,16 @@ public class HelloController {
                 }
             });
             additParamTextField.setTextFormatter(formatter);
-
+            TextFormatter<?> sizeFormatter = new TextFormatter<>(change -> {
+                if (indexPattern.matcher(change.getControlNewText()).matches()) {
+                    return change; // allow this change to happen
+                } else {
+                    return null; // prevent change
+                }
+            });
+            arraySizeTextField.setTextFormatter(sizeFormatter);
+            arraySizeTextField.setText("1");
+            setSizeClicked();
             FXMLLoader objViewFxmlLoader = new FXMLLoader(HelloController.class.getResource("object-view.fxml"));
             Scene objViewScene = new Scene(objViewFxmlLoader.load(), 300, 400);
             viewStage = new Stage();
@@ -168,23 +249,16 @@ public class HelloController {
         alert.setTitle(title);
         alert.setHeaderText(headerText);
         alert.setContentText(contentText);
-
         alert.showAndWait();
     }
 
     @FXML
-    private void editButtonPressed(ActionEvent actionEvent) {
-        currObject = objectsListViewer.getSelectionModel().getSelectedItem();
-        if (currObject != null) {
-            fields = getAllFields(currObject);
-            addStage.show();
-            currFieldCount = 0;
-            updateAddInfo(fields.get(currFieldCount));
-        }
+    private void setSizeClicked() {
+        arraySize = Integer.parseInt(arraySizeTextField.getText());
     }
 
     @FXML
-    private void updateButtonPressed(){
+    private void updateButtonPressed() {
         try {
             ModuleEngine.updateModules(classesComboBox);
         } catch (InvocationTargetException e) {
@@ -236,13 +310,13 @@ public class HelloController {
     private Object currObject;
     private Stack<Object> buffObjects;
 
-    private void updateAddInfo(Field field) {
+    private void updateAddInfo(Field field, Object obj, String info) {
         try {
             field.setAccessible(true);
             if (field.getType() == boolean.class || field.getType() == Boolean.class) {
                 additParamTextField.setVisible(false);
                 falseRB.setSelected(true);
-                trueRB.setSelected((Boolean) field.get(currObject));
+                trueRB.setSelected((Boolean) field.get(obj));
                 trueRB.setVisible(true);
                 falseRB.setVisible(true);
                 apLabel.setText(field.getName());
@@ -250,14 +324,92 @@ public class HelloController {
                 additParamTextField.setVisible(true);
                 trueRB.setVisible(false);
                 falseRB.setVisible(false);
-                additParamTextField.setText(String.valueOf(field.get(currObject)));
+                additParamTextField.setText(String.valueOf(field.get(obj)));
                 apLabel.setText(field.getName());
                 regexPattern = Pattern.compile(classesRegex.get(field.getType()));
             }
-            apLabel.setText(field.getType().getSimpleName() + " " + field.getName());
+            apLabel.setText(info);
             field.setAccessible(false);
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    @FXML
+    private void editButtonPressed(ActionEvent actionEvent) {
+        currObject = objectsListViewer.getSelectionModel().getSelectedItem();
+        if (currObject != null) {
+            try {
+                fields = getAllFields(currObject);
+                addStage.show();
+                currFieldCount = 0;
+                Field currField = fields.get(currFieldCount);
+                while (!serializableClasses.contains(currField.getType())) {
+                    currField.setAccessible(true);
+                    if (!currField.getType().isArray()) {
+                        Object newObj = currField.get(currObject);
+                        if (newObj == null) {
+                            newObj = currField.getType().getConstructor().newInstance();
+                            currField.set(currObject, newObj);
+                        }
+                        buffFields.push(fields);
+                        buffObjects.push(currObject);
+                        buffFieldCounters.push(currFieldCount);
+                        currObject = newObj;
+                    } else {
+                        Class elemType = currField.getType().getComponentType();
+                        Object newArr = currField.get(currObject);
+                        if (newArr == null) {
+                            newArr = Array.newInstance(elemType, arraySize);
+                            currField.set(currObject, newArr);
+                        }
+                        if (!serializableClasses.contains(elemType)) {
+                            buffFields.push(fields);
+                            buffObjects.push(currObject);
+                            buffFieldCounters.push(currFieldCount);
+                            for (int i = Array.getLength(newArr) - 1; i > 0; i--) {
+                                if (Array.get(newArr, i) == null) {
+                                    Array.set(newArr, i, elemType.getConstructor().newInstance());
+                                }
+                                buffFields.push(
+                                        getAllFields(
+                                                Array.get(
+                                                        newArr, i)));
+                                buffObjects.push(Array.get(newArr, i));
+                                buffFieldCounters.push(0);
+                            }
+                            if (Array.get(newArr, 0) == null) {
+                                Array.set(newArr, 0, elemType.getConstructor().newInstance());
+                            }
+                            currObject = Array.get(newArr, 0);
+                        } else {
+                            currField = getClass().getDeclaredField("arrayLine");
+                            isPrimArray = true;
+                        }
+                    }
+                    currField.setAccessible(false);
+                    if (!isPrimArray) {
+                        currFieldCount = 0;
+                        fields = getAllFields(currObject);
+                        currField = fields.get(currFieldCount);
+                    }
+                }
+                Field oldField = fields.get(currFieldCount);
+                StringBuilder objPath = new StringBuilder();
+                for (Object obj : buffObjects) {
+                    objPath.append(obj.getClass().getSimpleName()).append(":");
+                }
+                objPath.append(currObject.getClass().getSimpleName()).append(":");
+                updateAddInfo(currField, isPrimArray ? this : currObject,
+                        isPrimArray ? objPath + " array of "
+                                + oldField.getType().getComponentType().getSimpleName() + " " + oldField.getName():
+                                objPath + " " + oldField.getType().getSimpleName()
+                                        + " " + oldField.getName());
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | NoSuchFieldException e) {
+                makeNotification(Alert.AlertType.ERROR, "Error",
+                        "Add window error",
+                        "Error has occured: " + e.getMessage());
+            }
         }
     }
 
@@ -271,9 +423,69 @@ public class HelloController {
                 fields = getAllFields(currObject);
                 addStage.show();
                 currFieldCount = 0;
-                updateAddInfo(fields.get(currFieldCount));
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
-                     NoSuchMethodException e) {
+                Field currField = fields.get(currFieldCount);
+                while (!serializableClasses.contains(currField.getType())) {
+                    currField.setAccessible(true);
+                    if (!currField.getType().isArray()) {
+                        Object newObj = currField.get(currObject);
+                        if (newObj == null) {
+                            newObj = currField.getType().getConstructor().newInstance();
+                            currField.set(currObject, newObj);
+                        }
+                        buffFields.push(fields);
+                        buffObjects.push(currObject);
+                        buffFieldCounters.push(currFieldCount);
+                        currObject = newObj;
+                    } else {
+                        Class elemType = currField.getType().getComponentType();
+                        Object newArr = currField.get(currObject);
+                        if (newArr == null) {
+                            newArr = Array.newInstance(elemType, arraySize);
+                            currField.set(currObject, newArr);
+                        }
+                        if (!serializableClasses.contains(elemType)) {
+                            buffFields.push(fields);
+                            buffObjects.push(currObject);
+                            buffFieldCounters.push(currFieldCount);
+                            for (int i = Array.getLength(newArr) - 1; i > 0; i--) {
+                                if (Array.get(newArr, i) == null) {
+                                    Array.set(newArr, i, elemType.getConstructor().newInstance());
+                                }
+                                buffFields.push(
+                                        getAllFields(
+                                                Array.get(
+                                                        newArr, i)));
+                                buffObjects.push(Array.get(newArr, i));
+                                buffFieldCounters.push(0);
+                            }
+                            if (Array.get(newArr, 0) == null) {
+                                Array.set(newArr, 0, elemType.getConstructor().newInstance());
+                            }
+                            currObject = Array.get(newArr, 0);
+                        } else {
+                            currField = getClass().getDeclaredField("arrayLine");
+                            isPrimArray = true;
+                        }
+                    }
+                    currField.setAccessible(false);
+                    if (!isPrimArray) {
+                        currFieldCount = 0;
+                        fields = getAllFields(currObject);
+                        currField = fields.get(currFieldCount);
+                    }
+                }
+                Field oldField = fields.get(currFieldCount);
+                StringBuilder objPath = new StringBuilder();
+                for (Object obj : buffObjects) {
+                    objPath.append(obj.getClass().getSimpleName()).append(":");
+                }
+                objPath.append(currObject.getClass().getSimpleName()).append(":");
+                updateAddInfo(currField, isPrimArray ? this : currObject,
+                        isPrimArray ? objPath + " array of "
+                                + oldField.getType().getComponentType().getSimpleName() + " " + oldField.getName():
+                                objPath + " " + oldField.getType().getSimpleName()
+                                        + " " + oldField.getName());
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | NoSuchFieldException e) {
                 makeNotification(Alert.AlertType.ERROR, "Error",
                         "Add window error",
                         "Error has occured: " + e.getMessage());
@@ -308,7 +520,7 @@ public class HelloController {
                 objectsListViewer.setItems(objectsList);
             }
         } catch (IOException | ClassNotFoundException | InvocationTargetException | NoSuchMethodException |
-                 InstantiationException | IllegalAccessException | NoSuchFieldException e) {
+                InstantiationException | IllegalAccessException | NoSuchFieldException e) {
             makeNotification(Alert.AlertType.ERROR, "Error",
                     "Deserialize error",
                     "Error has occured: " + e.getMessage());
@@ -316,9 +528,9 @@ public class HelloController {
     }
 
     @FXML
-    private void viewButtonPressed(ActionEvent actionEvent){
+    private void viewButtonPressed(ActionEvent actionEvent) {
         Object obj = objectsListViewer.getSelectionModel().getSelectedItem();
-        if (obj != null){
+        if (obj != null) {
             try {
                 viewTextArea.clear();
                 viewTextArea.setText(Serializer.serializeObject(obj));

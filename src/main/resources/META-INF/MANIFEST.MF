@@ -1,3 +1,4 @@
 Manifest-Version: 1.0
 Main-Class: edu.bsuir.ootpisp_lab3_javafx.HelloApplication
+Class-Path: edu.bsuir.ootpisp_lab3_javafx.HelloApplication
 

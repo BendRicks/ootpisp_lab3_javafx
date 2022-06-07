@@ -10,7 +10,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="ootpisp_lab3_javafx" target="11" />
+      <module name="ootpisp_lab3_javafx" target="16" />
     </bytecodeTargetLevel>
   </component>
 </project>

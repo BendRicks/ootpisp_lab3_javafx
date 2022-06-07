@@ -1,0 +1,29 @@
+<component name="ArtifactManager">
+  <artifact type="javafx" name="serializer">
+    <output-path>$PROJECT_DIR$/out/artifacts/serializer</output-path>
+    <root id="root">
+      <element id="archive" name="ootpisp_lab3_javafx.jar">
+        <element id="library" level="project" name="Maven: org.openjfx:javafx-web:win:16" />
+        <element id="library" level="project" name="Maven: net.synedra:validatorfx:0.1.13" />
+        <element id="library" level="project" name="Maven: com.dlsc.formsfx:formsfx-core:11.3.2" />
+        <element id="library" level="project" name="Maven: eu.hansolo:tilesfx:11.48" />
+        <element id="library" level="project" name="Maven: org.kordamp.ikonli:ikonli-javafx:12.2.0" />
+        <element id="library" level="project" name="Maven: org.openjfx:javafx-fxml:16" />
+        <element id="library" level="project" name="Maven: org.openjfx:javafx-media:win:16" />
+        <element id="library" level="project" name="Maven: org.openjfx:javafx-base:16" />
+        <element id="library" level="project" name="Maven: org.openjfx:javafx-graphics:win:16" />
+        <element id="library" level="project" name="Maven: org.openjfx:javafx-base:win:16" />
+        <element id="library" level="project" name="Maven: org.openjfx:javafx-controls:win:16" />
+        <element id="module-output" name="ootpisp_lab3_javafx" />
+        <element id="library" level="project" name="Maven: org.openjfx:javafx-controls:16" />
+        <element id="library" level="project" name="Maven: org.openjfx:javafx-graphics:16" />
+        <element id="library" level="project" name="Maven: org.openjfx:javafx-fxml:win:16" />
+        <element id="library" level="project" name="Maven: org.openjfx:javafx-media:16" />
+        <element id="library" level="project" name="Maven: org.openjfx:javafx-web:16" />
+        <element id="library" level="project" name="Maven: org.kordamp.bootstrapfx:bootstrapfx-core:0.4.0" />
+        <element id="library" level="project" name="Maven: org.kordamp.ikonli:ikonli-core:12.2.0" />
+        <element id="library" level="project" name="Maven: org.controlsfx:controlsfx:11.1.0" />
+      </element>
+    </root>
+  </artifact>
+</component>
